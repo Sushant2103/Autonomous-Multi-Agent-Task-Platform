@@ -1,0 +1,39 @@
+import json, os
+from dotenv import load_dotenv
+from langchain_ollama import ChatOllama
+from agents.planner.schemas import Plan
+from agents.planner.planner_prompt import SYSTEM_PROMPT
+
+load_dotenv()
+
+def _model():
+    return ChatOllama(
+        model=os.getenv("OLLAMA_MODEL", "qwen3:4b-instruct-2507-q4_K_M"),
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        temperature=0,
+        num_ctx=int(os.getenv("OLLAMA_NUM_CTX", "4096")),
+        format="json",
+    )
+
+def extract_json(raw_response):
+    if hasattr(raw_response, "content"):
+        raw_response = raw_response.content
+    if not isinstance(raw_response, str):
+        raise ValueError("Planner response must be text")
+    cleaned = raw_response.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+    start, end = cleaned.find("{"), cleaned.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError("Planner did not return a JSON object")
+    return json.loads(cleaned[start:end + 1])
+
+def create_plan(user_request: str) -> Plan:
+    if not user_request or not user_request.strip():
+        raise ValueError("User request cannot be empty")
+    prompt = SYSTEM_PROMPT + "\n\nUSER REQUEST:\n" + user_request.strip() + "\n\nReturn only JSON matching the Plan schema."
+    response = _model().invoke(prompt)
+    return Plan.model_validate(extract_json(response))
+
+def run_planner_agent(user_request: str):
+    return create_plan(user_request)

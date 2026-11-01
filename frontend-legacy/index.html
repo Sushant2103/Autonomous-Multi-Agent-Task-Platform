@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autonomous Multi-Agent Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        }
+        h1 {
+            margin-top: 0;
+        }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #c8d1df;
+            border-radius: 8px;
+        }
+        button {
+            margin-top: 12px;
+            padding: 12px 18px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .status {
+            margin-top: 18px;
+            color: #374151;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Autonomous Multi-Agent Platform</h1>
+        <p>Enter a request and the system will process it.</p>
+
+        <textarea id="requestInput" placeholder="Example: Plan a 3-day Goa trip under Rs. 15000"></textarea>
+        <button id="submitBtn">Submit Request</button>
+
+        <div id="status" class="status">Ready.</div>
+        <div id="result" class="result">Your final response will appear here.</div>
+    </div>
+
+    <script>
+        const submitBtn = document.getElementById('submitBtn');
+        const statusEl = document.getElementById('status');
+        const resultEl = document.getElementById('result');
+        const requestInput = document.getElementById('requestInput');
+
+        submitBtn.addEventListener('click', async () => {
+            const userRequest = requestInput.value.trim();
+
+            if (!userRequest) {
+                statusEl.textContent = 'Please enter a request first.';
+                return;
+            }
+
+            statusEl.textContent = 'Processing your request...';
+            resultEl.textContent = 'Working on it...';
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tasks/execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: 1,
+                        user_request: userRequest
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Request failed');
+                }
+
+                statusEl.textContent = 'Request completed successfully.';
+                resultEl.textContent = data.final_response || JSON.stringify(data, null, 2);
+            } catch (error) {
+                statusEl.textContent = 'Something went wrong.';
+                resultEl.textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>

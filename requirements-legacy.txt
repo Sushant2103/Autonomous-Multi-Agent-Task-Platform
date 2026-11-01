@@ -1,0 +1,11 @@
+langchain
+langchain-ollama
+langgraph
+pydantic
+python-dotenv
+fastapi
+uvicorn
+mysql-connector-python
+reportlab
+tavily-python
+requests

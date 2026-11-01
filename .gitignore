@@ -1,0 +1,24 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE
+.vscode/
+
+# Logs
+*.log
+
+# Database and vector storage
+*.db
+chroma_db/
+
+# OS files
+.DS_Store
+Thumbs.db
